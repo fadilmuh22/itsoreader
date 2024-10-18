@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.diskominfo.itsoreader"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 21
+        targetSdk = 25
         versionCode = 1
         versionName = "1.0"
 
@@ -36,18 +36,17 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(files("libs/ztlib.aar"))
+    implementation("com.android.support:appcompat-v7:23.1.1")
+
+    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.23")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("com.android.support:appcompat-v7:23.1.1")
-
-
-    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.23")
 }

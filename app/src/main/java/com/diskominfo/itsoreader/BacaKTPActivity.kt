@@ -11,6 +11,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import android.window.OnBackInvokedDispatcher
+import androidx.activity.OnBackPressedCallback
+import androidx.core.os.BuildCompat
 import id.co.inti.ztlib.util.readcard
 import org.json.JSONObject
 import pl.droidsonroids.gif.GifTextView
@@ -70,6 +73,16 @@ class BacaKTPActivity : readcard() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_baca_ktp)
 
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Custom back press logic
+                val intent = Intent(this@BacaKTPActivity, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+                ledoff()
+            }
+        })
+
         // Initialize UI components
         progressBar = findViewById(R.id.progressBar5)
         message = findViewById(R.id.message)
@@ -86,36 +99,25 @@ class BacaKTPActivity : readcard() {
 
         nodisplay()
 
-        // Set Status Bar color for API 21+
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            window.statusBarColor = ContextCompat.getColor(this, R.color.bg_screen1)
+
+//        // Set onClick listeners
+//        back.setOnClickListener {
+//            backbutton()
 //        }
-
-        // Set onClick listeners
-        back.setOnClickListener {
-            backbutton()
-        }
-
-        authorize.setOnClickListener {
-            authorizeAction()
-        }
-
-        readagain.setOnClickListener {
-            backbutton()
-        }
+//
+//        authorize.setOnClickListener {
+//            authorizeAction()
+//        }
+//
+//        readagain.setOnClickListener {
+//            backbutton()
+//        }
 
         baca = readcard()
         readTask = ReadKtp()
         readTask?.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish()
-        ledoff()
-    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -141,61 +143,136 @@ class BacaKTPActivity : readcard() {
                     return -1
                 }
                 val uid = UID()
-                Log.d(TAG, "UID : $uid")
+                if (uid == null || uid.isEmpty()) {
+                    Log.e(TAG, "UID is null or empty")
+                    return -1
+                } else {
+                    Log.d(TAG, "UID : $uid")
+                }
 
-                ret = selectMF()
-                display()
-                update("5")
+                try {
+                    ret = selectMF()
+                    Log.d(TAG, "selectMF() returned: $ret")
+
+                    // Add an immediate log after the successful return
+                    Log.d(TAG, "Moving to the next step after selectMF()")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in selectMF(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
+//                display()
+//                update("5")
                 if (ret == -1) {
                     Log.d(TAG, "sc failed")
                     displayerror(errorMessage[1], false)
                     return -1
                 }
-                update("10")
-                ret = readPhoto()
+//                update("10")
+                try {
+                    ret = readPhoto()
+                    Log.d(TAG, "readPhoto() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in readPhoto(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
                 if (ret == -1) {
                     Log.d(TAG, "Read Photo Failed")
                     displayerror(errorMessage[1], false)
                     return -1
                 }
-                update("25")
-                ret = open_sam()
+
+//                if (this.pccid == null || this.config == null) {
+//                    Log.e(TAG, "pccid or config is null, cannot call open_sam()")
+//                    return -1  // Handle the error and prevent further execution
+//                }
+
+                try{
+                    ret = open_sam()
+                    Log.d(TAG, "open_sam() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in open_sam(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
                 if (ret == -1) {
                     Log.d(TAG, "Open SAM Failed")
                     displayerror(errorMessage[2], false)
                     return -1
+                } else {
+                    Log.d(TAG, "open_sam() succeeded")
                 }
 
-                update("40")
-                ret = Autentikasi()
+//                update("40")
+                try {
+                    ret = Autentikasi()
+                    Log.d(TAG, "Autentikasi() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in Autentikasi(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
+
                 if (ret == -1) {
                     Log.d(TAG, "Autentikasi Failed")
                     displayerror(errorMessage[3], false)
                     return -1
                 }
-                update("60")
-                ret = ReadBiodata()
+//                update("60")
+
+                try {
+                    ret = ReadBiodata()
+                    Log.d(TAG, "ReadBiodata() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in ReadBiodata(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
                 if (ret == -1) {
                     Log.d(TAG, "Read Biodata Failed")
                     displayerror(errorMessage[4], false)
                     return -1
                 }
-                update("70")
-                ret = readSignature()
+//                update("70")
+                try {
+                    ret = readSignature()
+                    Log.d(TAG, "readSignature() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in readSignature(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
                 if (ret == -1) {
                     Log.d(TAG, "Read TTD Failed")
                     displayerror(errorMessage[5], true)
                     return -1
                 }
-                update("75")
-                ret = readMinutae1()
+//                update("75")
+                try {
+                    ret = readMinutae1()
+                    Log.d(TAG, "readMinutae1() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in readMinutae1(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
                 if (ret == -1) {
                     Log.d(TAG, "Read Minutea1 Failed")
                 } else {
                     validMinutea++
                 }
-                update("80")
-                ret = readMinutae2()
+//                update("80")
+
+
+                try {
+                    ret = readMinutae2()
+                    Log.d(TAG, "readMinutae2() returned: $ret")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in readMinutae2(): " + e.message)
+                    e.printStackTrace()
+                    return -1  // Handle the error
+                }
                 if (ret == -1) {
                     Log.d(TAG, "Read Minutea2 Failed")
                 } else {
@@ -206,7 +283,7 @@ class BacaKTPActivity : readcard() {
                     displayerror(errorMessage[6], true)
                     return -1
                 }
-                update("90")
+//                update("90")
                 ret = StopDSAutoVerification()
                 if (ret == -1) {
                     Log.d(TAG, "Stop DS Failed")
@@ -214,7 +291,7 @@ class BacaKTPActivity : readcard() {
                     return -1
                 }
                 ret = VerifyDS()
-                update("95")
+//                update("95")
                 if (ret == -1) {
                     Log.d(TAG, "Verify DS Failed")
                     displayerror(errorMessage[6], true)
@@ -229,7 +306,7 @@ class BacaKTPActivity : readcard() {
                     return -1
                 } else if (ret == 1) {
                     Log.d(TAG, "Nilai V :$ret")
-                    update("100")
+//                    update("100")
                     data = getdataktp()
                     val intent = Intent(context, MainActivity::class.java).apply {
                         putExtra("json", data.toString())
@@ -378,13 +455,6 @@ class BacaKTPActivity : readcard() {
     private fun authorizeAction() {
         readTask?.cancel(true)
         data = getdataktp()
-        val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("json", data.toString())
-            putExtra("typeAuth", "Pemilik")
-            putExtra("nikAdmin", nikadmin)
-            putExtra("nameAdmin", nameadmin)
-        }
-        startActivity(intent)
-        finish()
+
     }
 }
