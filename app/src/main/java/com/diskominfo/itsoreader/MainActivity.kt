@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         scan = findViewById<Button>(R.id.btn_ktp)
 
         scan.setOnClickListener {
-            startActivity(Intent(this, BacaKTPActivity::class.java))
+            startActivity(Intent(this, FactoryActivity::class.java))
         }
     }
 }

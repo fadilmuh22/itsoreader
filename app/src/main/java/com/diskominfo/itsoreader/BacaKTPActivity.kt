@@ -14,7 +14,6 @@ import android.widget.*
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.OnBackPressedCallback
 import androidx.core.os.BuildCompat
-import id.co.inti.ztlib.util.readcard
 import org.json.JSONObject
 import pl.droidsonroids.gif.GifTextView
 
@@ -161,7 +160,7 @@ class BacaKTPActivity : readcard() {
                     e.printStackTrace()
                     return -1  // Handle the error
                 }
-//                display()
+                display()
 //                update("5")
                 if (ret == -1) {
                     Log.d(TAG, "sc failed")
