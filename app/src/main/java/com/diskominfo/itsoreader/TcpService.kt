@@ -1,20 +1,20 @@
 package com.diskominfo.itsoreader
 
+import android.app.Service
 import android.content.Intent
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import androidx.appcompat.app.AppCompatActivity
+import android.os.IBinder
 import android.util.Base64
 import android.util.Log
-import com.diskominfo.itsoreader.R.*
 import id.co.inti.ztlib.util.Hex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.io.*
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.net.SocketException
 import java.security.KeyStore
 import java.security.SecureRandom
@@ -23,43 +23,24 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLServerSocketFactory
 
-class FactoryActivity : AppCompatActivity() {
+class TcpService : Service() {
+
     private var sssf: SSLServerSocketFactory? = null
     private var sss: SSLServerSocket? = null
     private var isRunning = true
-    private var db: DBHelper = DBHelper(this)
+    private lateinit var db: DBHelper
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy called: Closing the server socket")
-        isRunning = false
-        try {
-            sss?.close()
-            Log.d(TAG, "Server socket closed in onDestroy")
-        } catch (e: IOException) {
-            Log.e(TAG, "Error closing server socket in onDestroy: $e")
-        }
+    override fun onCreate() {
+        super.onCreate()
+        db = DBHelper(this)
+        db.openDB()
     }
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        db.openDB()
-
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         CoroutineScope(Dispatchers.IO).launch {
-            tcp() // Run tcp in the IO dispatcher, meant for network tasks
+            tcp() // Start the socket server in the background
         }
-
-        Handler(Looper.getMainLooper()).postDelayed({
-            // Start new activity after 2 seconds
-            val intent = Intent(this, BacaKTPActivity::class.java)
-            startActivity(intent)
-            finish() // Optionally close the current activity
-        }, 2000)
-
-        // Start the TcpService when FactoryActivity launches
-        val intent = Intent(this, TcpService::class.java)
-        startService(intent)
+        return START_STICKY
     }
 
     private fun tcp() {
@@ -67,16 +48,13 @@ class FactoryActivity : AppCompatActivity() {
             val sslContext = SSLContext.getInstance("TLS")
             val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
             val ks = KeyStore.getInstance("BKS")
-            val fis = resources.openRawResource(raw.key)
+            val fis = resources.openRawResource(R.raw.key)
             ks.load(fis, "1nt1".toCharArray())
             kmf.init(ks, "1nt1".toCharArray())
             sslContext.init(kmf.keyManagers, null, SecureRandom())
             sssf = sslContext.serverSocketFactory
 
-            // Close the old socket if it's open
             sss?.close()
-
-            // Create a new server socket
             sss = sssf?.createServerSocket(5503) as SSLServerSocket
             sss?.reuseAddress = true
             Log.d(TAG, "Secure Socket is starting up on port 5503")
@@ -108,10 +86,9 @@ class FactoryActivity : AppCompatActivity() {
                         }
                     }
                 } catch (e: SocketException) {
-                    // Catch SocketException and check if it's a "Socket closed" error
                     if (e.message?.contains("Socket closed") == true) {
                         Log.d(TAG, "Server socket closed, exiting loop")
-                        break // Exit the while loop when the socket is closed
+                        break
                     } else {
                         Log.d(TAG, "Error in client handling: $e")
                     }
@@ -123,14 +100,64 @@ class FactoryActivity : AppCompatActivity() {
             Log.d(TAG, "Error in server loop: $e")
         } finally {
             try {
-                sss?.close() // Ensure the server socket is closed when the loop ends
+                sss?.close()
             } catch (e: IOException) {
                 Log.e(TAG, "Error closing server socket: $e")
             }
         }
     }
 
+    private fun parseJSON(msg: String): String? {
+        var respMsg: String? = null
 
+        try {
+            val reader = JSONObject(msg)
+            val key = reader.getString("key")
+            if (key != "INTI") {
+                return responseMSG(12, "Command not valid")
+            }
+
+            val cmd = reader.getString("command")
+            when (cmd) {
+                "setSAM" -> {
+                    Log.d(TAG, "Set SAM")
+                    val serial = reader.getString("pcid")
+                    val part = reader.getString("configfile")
+                    if (serial.isNotEmpty() && part.isNotEmpty()) {
+                        db.setSAM(serial, part)
+                        respMsg = responseMSG(0, "config SAM success")
+                    } else {
+                        respMsg = responseMSG(13, "data not valid")
+                    }
+                }
+
+                "readIDENTITY" -> respMsg = readIdentity()
+
+                "updateIDENTITY" -> {
+                    Log.d(TAG, "update identity")
+                    val serial = reader.getString("serialNumber")
+                    val part = reader.getString("partNumber")
+                    val code = reader.getString("companyCode")
+                    db.setIdentity(serial, part, code, "")
+                    respMsg = responseMSG(0, "update identity success")
+                }
+
+                "resetADMIN" -> {
+                    for (i in 1..4) {
+                        db.removeAdmin(i)
+                    }
+                    respMsg = responseMSG(0, "reset ADMIN success")
+                }
+
+                else -> respMsg = responseMSG(12, "Command not valid")
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "Error Parse : $e")
+            respMsg = responseMSG(13, "data not valid")
+        }
+
+        return respMsg
+    }
 
     private fun responseMSG(code: Int, desc: String): String {
         val jsonObj = JSONObject()
@@ -168,63 +195,21 @@ class FactoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun parseJSON(msg: String): String? {
-        var respMsg: String? = null
-
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning = false
         try {
-            val reader = JSONObject(msg)
-            val key = reader.getString("key")
-            if (key != "INTI") {
-                return responseMSG(12, "Command not valid")
-            }
-
-            val cmd = reader.getString("command")
-            when (cmd) {
-                "setSAM" -> {
-                    Log.d(TAG, "Set SAM")
-                    val serial = reader.getString("pcid")
-                    val part = reader.getString("configfile")
-                    if (serial.isNotEmpty() && part.isNotEmpty()) {
-                        db.setSAM(serial, part)
-                        respMsg = responseMSG(0, "config SAM success")
-                        val sam = db.readSAM()
-                        val pccid = sam[0]
-                        val config = sam[1]
-                        println(pccid)
-                    } else {
-                        respMsg = responseMSG(13, "data not valid")
-                    }
-                }
-
-                "readIDENTITY" -> respMsg = readIdentity()
-
-                "updateIDENTITY" -> {
-                    Log.d(TAG, "update identity")
-                    val serial = reader.getString("serialNumber")
-                    val part = reader.getString("partNumber")
-                    val code = reader.getString("companyCode")
-                    db.setIdentity(serial, part, code, "")
-                    respMsg = responseMSG(0, "update identity success")
-                }
-
-                "resetADMIN" -> {
-                    for (i in 1..4) {
-                        db.removeAdmin(i)
-                    }
-                    respMsg = responseMSG(0, "reset ADMIN success")
-                }
-
-                else -> respMsg = responseMSG(12, "Command not valid")
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "Error Parse : $e")
-            respMsg = responseMSG(13, "data not valid")
+            sss?.close()
+        } catch (e: IOException) {
+            Log.e(TAG, "Error closing server socket: $e")
         }
+    }
 
-        return respMsg
+    override fun onBind(intent: Intent?): IBinder? {
+        return null // Not a bound service
     }
 
     companion object {
-        private const val TAG = "Factory"
+        private const val TAG = "TcpService"
     }
 }

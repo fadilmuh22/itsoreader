@@ -11,14 +11,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
-import android.window.OnBackInvokedDispatcher
 import androidx.activity.OnBackPressedCallback
-import androidx.core.os.BuildCompat
 import org.json.JSONObject
 import pl.droidsonroids.gif.GifTextView
 
-class BacaKTPActivity : readcard() {
-    private var baca: readcard? = null
+class BacaKTPActivity : readercard() {
+    private var baca: readercard? = null
     private var bypass: Bypassadmin? = null
 
     private lateinit var home: Button
@@ -72,6 +70,7 @@ class BacaKTPActivity : readcard() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_baca_ktp)
 
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 // Custom back press logic
@@ -112,7 +111,7 @@ class BacaKTPActivity : readcard() {
 //            backbutton()
 //        }
 
-        baca = readcard()
+//        baca = readecard()
         readTask = ReadKtp()
         readTask?.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
     }
