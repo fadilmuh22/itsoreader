@@ -7,24 +7,23 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.itsotest.R
+import com.example.itsotest.databinding.ActivityHomeBinding
 import com.example.itsotest.ui.history.HistoryActivity
-import com.example.itsotest.ui.readktp.InputKtpActivity
+import com.example.itsotest.ui.login.MainActivity
+import com.example.itsotest.ui.inputktp.InputKtpActivity
 import com.example.itsotest.utils.EktpReaderIntiSingleton
+import net.inti.intiektplib.EktpReaderInti
 import org.json.JSONObject
 
 class HomeActivity : AppCompatActivity() {
-    private val ektpReaderInti by lazy { EktpReaderIntiSingleton.getInstance(this) }
-    private lateinit var buttonReadKtp: Button
-    private lateinit var buttonAdminManagement: Button
-    private lateinit var buttonHistory: Button
+    private lateinit var ektpReaderInti: EktpReaderInti
+    private lateinit var binding : ActivityHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
-
-        buttonReadKtp = findViewById(R.id.btn_readektp_test)
-        buttonAdminManagement = findViewById(R.id.btn_admin_management)
-        buttonHistory = findViewById(R.id.btn_history)
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        ektpReaderInti = EktpReaderIntiSingleton.getInstance(this)
 
         readKtp()
         adminManagement()
@@ -33,49 +32,36 @@ class HomeActivity : AppCompatActivity() {
 
     private fun readKtp() {
         Log.d(TAG, "Memulai fungsi readKtp") // Log sebelum memulai
-        buttonReadKtp.setOnClickListener {
+        binding.btnReadektpTest.setOnClickListener {
             ektpReaderInti.startReadEktp()
         }
         ektpReaderInti.ektpReaderResult.observe(this) { result ->
-            Log.d(TAG, "{$result}")
-            try {
-                if (result != "") {
-                    val jsonObject = JSONObject(result)
-                    val nik = jsonObject.getString("nik")
-
-                    Log.d(TAG, "Data KTP NIK: $nik")
-                    Toast.makeText(
-                        baseContext,
-                        "NIK : $nik",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        baseContext,
-                        "Failed To Read EKTP",
-                        Toast.LENGTH_LONG
-                    ).show()
+            Log.d(MainActivity.TAG, "{$result}")
+            if (result != "") {
+                val jsonObject = JSONObject(result)
+                val intent = Intent(this, InputKtpActivity::class.java).apply {
+                    putExtra(InputKtpActivity.RESULT, jsonObject.toString())
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error reading EKTP data: ${e.message}")
+                startActivity(intent)
+
+            } else {
                 Toast.makeText(
                     baseContext,
-                    "Error reading EKTP data",
+                    "Gagal Scan E-KTP",
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
     }
 
-
     private fun adminManagement() {
-        buttonAdminManagement.setOnClickListener {
+        binding.btnAdminManagement.setOnClickListener {
             ektpReaderInti.showManageAdmin()
         }
     }
 
     private fun goHistory() {
-        buttonHistory.setOnClickListener {
+        binding.btnHistory.setOnClickListener {
             val intentHistory = Intent(this, HistoryActivity::class.java)
             startActivity(intentHistory)
         }

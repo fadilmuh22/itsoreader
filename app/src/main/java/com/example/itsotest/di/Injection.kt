@@ -2,7 +2,7 @@ package com.example.itsotest.di
 
 import android.content.Context
 import com.example.itsotest.data.api.config.ApiConfig
-import com.example.itsotest.data.api.config.UserRepository
+import com.example.itsotest.data.UserRepository
 
 object Injection {
     fun provideRepository(context: Context): UserRepository {

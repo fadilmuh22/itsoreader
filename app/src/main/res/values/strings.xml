@@ -3,4 +3,19 @@
     <string name="btn_admin_auth_test">LOGIN ADMIN</string>
     <string name="btn_read_ektp_test">READ EKTP</string>
     <string name="btn_admin_management">ADMIN MANAGEMENT</string>
+    <string name="btn_admin_exist_test">ADMIN EXIST TEST</string>
+    <string name="btn_manage_admin">ADMIN MANAGEMENT</string>
+    <string name="btn_device_history">DEVICE HISTORY</string>
+    <string name="nik">NIK</string>
+    <string name="nama">Nama</string>
+    <string name="tanggalLahir">Tempat/Tgl Lahir</string>
+    <string name="kelamin">Jenis Kelamin</string>
+    <string name="alamat">Alamat</string>
+    <string name="nomor">Nomor HP</string>
+    <string name="instansi">Asal Instansi</string>
+    <string name="tujuan">Tujuan</string>
+    <string name="save">Simpan</string>
+    <string name="penerima">Pegawai Penerima Tamu</string>
+    <string name="judul_dialog">Terdapat Field yang Kosong</string>
+    <string name="pesan_dialog">Semua Field Tidak Boleh Kosong</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.itsotest.data.api
+package com.example.itsotest.data
 
 sealed class ResultState<out R> private constructor() {
     data class Success<out T>(val data: T) : ResultState<T>()
