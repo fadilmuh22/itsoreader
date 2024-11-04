@@ -222,6 +222,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="text" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -264,31 +265,42 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tujuanEditTextLayout" />
 
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/penerimaEditTextLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="0dp"
+            android:layout_width="240dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/image_search"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/penerimaTextView">
 
             <AutoCompleteTextView
                 android:id="@+id/penerimaAutoComplete"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/penerima" />
+                android:layout_height="match_parent"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-
+        <ImageView
+            android:id="@+id/image_search"
+            android:layout_width="36dp"
+            android:layout_height="37dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="32dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/penerimaTextView"
+            app:srcCompat="@drawable/ic_search" />
 
         <Button
             android:id="@+id/btn_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
+            android:background="@drawable/button_primary"
             android:layout_marginTop="28dp"
             android:layout_marginEnd="32dp"
             android:text="@string/save"
@@ -297,15 +309,28 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/penerimaEditTextLayout" />
 
-        <com.google.android.material.progressindicator.LinearProgressIndicator
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progressIndicator"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:indeterminate="true"
             android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <View
+            android:id="@+id/blurOverlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#80000000"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
 
 
 
