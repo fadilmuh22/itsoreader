@@ -7,6 +7,7 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.paging.LoadState
@@ -20,7 +21,7 @@ import com.example.itsotest.ui.history.adapter.LoadingStateAdapter
 import com.example.itsotest.ui.inputktp.InputKtpViewModel
 
 class HistoryActivity : AppCompatActivity() {
-    private lateinit var binding : ActivityHistoryBinding
+    private lateinit var binding: ActivityHistoryBinding
 
     private val viewModel by viewModels<HistoryViewModel> {
         ViewModelFactory.getInstance(this)
@@ -33,12 +34,6 @@ class HistoryActivity : AppCompatActivity() {
 
         binding.rvList.layoutManager = LinearLayoutManager(this)
 
-        getData()
-    }
-
-    private fun getData() {
-        showLoading(true) // Menampilkan indikator loading
-
         val adapter = HistoryAdapter { selectedValue ->
             Log.d("HistoryActivity", "masuk $selectedValue")
         }
@@ -49,15 +44,35 @@ class HistoryActivity : AppCompatActivity() {
             }
         )
 
-        adapter.addLoadStateListener { loadState ->
-            if (loadState.refresh is LoadState.Loading) {
-                showLoading(true) // Masih loading
-            } else {
-                showLoading(false) // Selesai loading
-            }
-        }
+        // Observe data from ViewModel
+        observeData(adapter)
 
+        // Set up SearchView listener
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                query?.let {
+                    searchTamu(it, adapter)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let {
+                    searchTamu(it, adapter)
+                }
+                return true
+            }
+        })
+    }
+
+    private fun observeData(adapter: HistoryAdapter) {
         viewModel.quote.observe(this, {
+            adapter.submitData(lifecycle, it)
+        })
+    }
+
+    private fun searchTamu(query: String, adapter: HistoryAdapter) {
+        viewModel.searchTamu(query).observe(this, {
             adapter.submitData(lifecycle, it)
         })
     }
@@ -65,6 +80,4 @@ class HistoryActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
-
-
 }

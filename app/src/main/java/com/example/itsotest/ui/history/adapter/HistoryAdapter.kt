@@ -17,8 +17,6 @@ import com.example.itsotest.databinding.ItemTipsBinding
 class HistoryAdapter(private val onItemClicked: (String) -> Unit) :
     PagingDataAdapter<TamuItem, HistoryAdapter.MyViewHolder>(DIFF_CALLBACK) {
 
-    // Set untuk menyimpan posisi item yang diperluas
-    private val expandedPositionSet = mutableSetOf<Int>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val binding = ItemTipsBinding.inflate(LayoutInflater.from(parent.context), parent, false)

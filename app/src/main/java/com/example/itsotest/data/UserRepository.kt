@@ -120,7 +120,20 @@ class UserRepository private constructor(
                 enablePlaceholders = false, // Disarankan nonaktif jika data dinamis
             ),
             pagingSourceFactory = {
-                TamuPagingSource(apiService)
+                TamuPagingSource(apiService, null)
+            }
+        ).liveData
+    }
+
+    fun getSearchTamu(search : String): LiveData<PagingData<TamuItem>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 5,               // Jumlah item per halaman
+                initialLoadSize = 5,        // Jumlah item yang dimuat pertama kali
+                enablePlaceholders = false, // Disarankan nonaktif jika data dinamis
+            ),
+            pagingSourceFactory = {
+                TamuPagingSource(apiService, search)
             }
         ).liveData
     }

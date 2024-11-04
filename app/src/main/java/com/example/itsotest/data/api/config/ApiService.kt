@@ -58,4 +58,11 @@ interface ApiService {
         @Query("per_page") size : Int
     ) : HistoryResponse
 
+    @GET("history-tamu")
+    suspend fun searchHistoryTamu(
+        @Query("page") page : Int,
+        @Query("per_page") size : Int,
+        @Query("search") search : String
+    ) : HistoryResponse
+
 }

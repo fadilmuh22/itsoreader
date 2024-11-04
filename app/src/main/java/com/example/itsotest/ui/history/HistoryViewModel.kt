@@ -8,8 +8,15 @@ import androidx.paging.cachedIn
 import com.example.itsotest.data.UserRepository
 import com.example.itsotest.data.api.response.TamuItem
 
-class HistoryViewModel(private val repository : UserRepository) : ViewModel() {
+class HistoryViewModel(private val repository: UserRepository) : ViewModel() {
 
-    val quote: LiveData<PagingData<TamuItem>> =
-        repository.getTamu().cachedIn(viewModelScope)
+    val quote: LiveData<PagingData<TamuItem>> = repository.getTamu().cachedIn(viewModelScope)
+
+    private var currentSearchResult: LiveData<PagingData<TamuItem>>? = null
+
+    fun searchTamu(query: String): LiveData<PagingData<TamuItem>> {
+        val newResult = repository.getSearchTamu(query).cachedIn(viewModelScope)
+        currentSearchResult = newResult
+        return newResult
+    }
 }
