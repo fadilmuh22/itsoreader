@@ -1,0 +1,28 @@
+package com.example.itsotest.data.pref
+
+data class TamuModel(
+    val nik: String,
+    val namaLengkap : String,
+    val jenisKelamin: String,
+    val tempatLahir: String,
+    val tanggalLahir: String,
+    val agama: String,
+    val statusKawin: String,
+    val jenisPekerjaan: String,
+    val namaProvinsi: String,
+    val namaKabupaten: String,
+    val namaKecamatan: String,
+    val namaKelurahan: String,
+    val alamat: String,
+    val nomorRt: String,
+    val nomorRw: String,
+    val berlakuHingga: String,
+    val golonganDarah: String,
+    val kewarganegaraan: String,
+    val nomorHp : String,
+    val foto: String,
+    val asalInstansi: String,
+    val tujuanKunjungan: String,
+    val penerimaTamuNip: String,
+    val isSend: Boolean = false,
+)

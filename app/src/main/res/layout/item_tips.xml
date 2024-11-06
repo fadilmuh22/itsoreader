@@ -12,7 +12,7 @@
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/iv_tips"
         android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_height="118dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_place_holder"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -57,11 +57,38 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
         android:justificationMode="inter_word"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/iv_tips"
         app:layout_constraintTop_toBottomOf="@id/tv_asal"
         tools:text="Penerima Tamu: John Smith" />
+
+    <!-- Waktu Kedatangan -->
+    <TextView
+        android:id="@+id/tv_waktu_kedatangan"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:justificationMode="inter_word"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/iv_tips"
+        app:layout_constraintTop_toBottomOf="@id/tv_penerima_tamu"
+        tools:text="Waktu Kedatangan: 10:00 AM" />
+
+    <!-- Asal Instansi (new TextView) -->
+    <TextView
+        android:id="@+id/tv_asal_instansi"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:justificationMode="inter_word"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/iv_tips"
+        app:layout_constraintTop_toBottomOf="@id/tv_waktu_kedatangan"
+        tools:text="Asal Instansi: PT Contoh" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

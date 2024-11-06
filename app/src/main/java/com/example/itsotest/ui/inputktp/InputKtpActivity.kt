@@ -1,10 +1,14 @@
 package com.example.itsotest.ui.inputktp
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
@@ -17,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.itsotest.R
 import com.example.itsotest.data.ResultState
 import com.example.itsotest.data.api.response.DataItem
+import com.example.itsotest.data.service.RetryService
 import com.example.itsotest.databinding.ActivityInputKtpBinding
 import com.example.itsotest.ui.ViewModelFactory
 import com.example.itsotest.ui.home.HomeActivity
@@ -27,7 +32,7 @@ class InputKtpActivity : AppCompatActivity() {
     private lateinit var binding : ActivityInputKtpBinding
 
     private var lastQuery: String? = null
-    private lateinit var nip : String
+    private var nip : String? = null
     private var pegawaiDataList: List<DataItem> = listOf()
 
     private val viewModel by viewModels<InputKtpViewModel> {
@@ -76,8 +81,6 @@ class InputKtpActivity : AppCompatActivity() {
                     val fotoBitmap = decodeBase64ToBitmap(fotoBase64)
                     fotoKtp.setImageBitmap(fotoBitmap)
                 }
-
-
             }
 
 
@@ -96,65 +99,99 @@ class InputKtpActivity : AppCompatActivity() {
 
     }
 
-    private fun setupAction(dataKtp : String) {
+    private fun setupAction(dataKtp: String) {
         val nomorHp = binding.nomorEditText.text.toString()
         val instansi = binding.instansiEditText.text.toString()
         val tujuan = binding.tujuanEditText.text.toString()
+        val pegawai = binding.penerimaAutoComplete.text.toString()
 
-
-
-        if (!TextUtils.isEmpty(nomorHp) && !TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(tujuan) && !TextUtils.isEmpty(nip)) {
-            try {
-                // Konversi dataKtp ke JSONObject
-                val jsonObject = JSONObject(dataKtp)
-
-                // Tambahkan key-value baru
-                jsonObject.put("nomor_hp", nomorHp)
-                jsonObject.put("asal_instansi", instansi)
-                jsonObject.put("tujuan_kunjungan", tujuan)
-                jsonObject.put("penerima_tamu_nip", nip)
-
-                // Konversi kembali ke string jika diperlukan
-                val updatedDataKtp = jsonObject.toString()
-
-                // Lakukan sesuatu dengan updatedDataKtp
-                viewModel.uploadTamu(updatedDataKtp).observe(this@InputKtpActivity) { result ->
-                    when (result) {
-                        is ResultState.Loading -> {
-                            showLoading(true)
-                        }
-
-                        is ResultState.Success -> {
-                            MaterialAlertDialogBuilder(this).apply {
-                                setTitle("Data Berhasil dikirim")
-                                setMessage("Data Tamu Sudah Terkirim")
-                                setPositiveButton("Lanjut") { _, _ ->
-                                    val intent = Intent(context, HomeActivity::class.java)
-                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                                    startActivity(intent)
-                                    finish()
-                                }
-                                create()
-                                show()
-                            }
-                            showLoading(false)
-                        }
-
-                        is ResultState.Error -> {
-                            showToast(result.error)
-                            showLoading(false)
-                        }
-                    }
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+        if (TextUtils.isEmpty(nip)) {
+            Log.d(TAG, "Ini masuk NIP kosong")
+            if (!TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(tujuan) && !TextUtils.isEmpty(nomorHp)) {
+                sendTamu(pegawai = pegawai, tujuan = tujuan, dataKtp = dataKtp, instansi = instansi, nomorHp = nomorHp)
+            } else {
+                showAlert(
+                    getString(R.string.judul_dialog),
+                    getString(R.string.pesan_dialog)
+                ) { }
             }
         } else {
-            showAlert(
-                getString(R.string.judul_dialog),
-                getString(R.string.pesan_dialog)
-            ) { }
+            Log.d(TAG, "Ini NIP ada isinya")
+            if (!TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(tujuan) && !TextUtils.isEmpty(nomorHp)) {
+                nip?.let { sendTamu(pegawai = it, tujuan = tujuan, dataKtp = dataKtp, instansi = instansi, nomorHp = nomorHp) }
+            } else {
+                showAlert(
+                    getString(R.string.judul_dialog),
+                    getString(R.string.pesan_dialog)
+                ) { }
+            }
+        }
+    }
+
+
+    private fun sendTamu(pegawai: String, dataKtp: String, instansi: String, tujuan: String, nomorHp: String) {
+        try {
+            // Convert dataKtp to JSONObject
+            val jsonObject = JSONObject(dataKtp)
+
+            // Add additional key-values
+            jsonObject.put("asal_instansi", instansi)
+            jsonObject.put("nomor_hp", nomorHp)
+            jsonObject.put("tujuan_kunjungan", tujuan)
+
+            // Add "penerima_tamu_nip" with a value or null based on pegawai
+            if (pegawai.isNotEmpty()) {
+                jsonObject.put("penerima_tamu_nip", pegawai)
+            } else {
+                jsonObject.put("penerima_tamu_nip", JSONObject.NULL) // Set to null if pegawai is empty
+            }
+
+            val updatedDataKtp = jsonObject.toString()
+
+            // Continue with the updated JSON data
+            viewModel.uploadTamu(updatedDataKtp).observe(this@InputKtpActivity) { result ->
+                when (result) {
+                    is ResultState.Loading -> showLoading(true)
+
+                    is ResultState.Success -> {
+                        MaterialAlertDialogBuilder(this).apply {
+                            setTitle("Data Berhasil dikirim")
+                            setMessage("Data Tamu Sudah Terkirim")
+                            setPositiveButton("Lanjut") { _, _ ->
+                                val intent = Intent(context, HomeActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                        showLoading(false)
+                    }
+
+                    is ResultState.Error -> {
+                        showToast(result.error)
+                        MaterialAlertDialogBuilder(this).apply {
+                            setTitle("Data Tidak Berhasil Dikirim")
+                            setMessage("Jangan khawatir, data akan dikirim saat server kembali online dan pastikan koneksi internet terhubung")
+                            setPositiveButton("Lanjut") { _, _ ->
+                                val intent = Intent(context, HomeActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                        showLoading(false)
+                        viewModel.saveDataToPreferences(updatedDataKtp) // Save data if it fails
+                        scheduleRetryService()
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -254,6 +291,20 @@ class InputKtpActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.blurOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
+    private fun scheduleRetryService() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, RetryService::class.java)
+        val pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val triggerTime = SystemClock.elapsedRealtime() + 3600000 // 1 jam dalam milidetik
+        alarmManager.setInexactRepeating(
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            triggerTime,
+            AlarmManager.INTERVAL_HOUR,
+            pendingIntent
+        )
     }
 
     companion object {

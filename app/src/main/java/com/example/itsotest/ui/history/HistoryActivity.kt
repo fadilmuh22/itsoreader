@@ -38,6 +38,11 @@ class HistoryActivity : AppCompatActivity() {
             Log.d("HistoryActivity", "masuk $selectedValue")
         }
 
+        // Show loading when data is loading
+        adapter.addLoadStateListener { loadState ->
+            showLoading(loadState.source.refresh is LoadState.Loading)
+        }
+
         binding.rvList.adapter = adapter.withLoadStateFooter(
             footer = LoadingStateAdapter {
                 adapter.retry()
@@ -66,18 +71,23 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun observeData(adapter: HistoryAdapter) {
-        viewModel.quote.observe(this, {
-            adapter.submitData(lifecycle, it)
-        })
+        showLoading(true) // Show loading initially
+        viewModel.quote.observe(this) { data ->
+            showLoading(false) // Hide loading when data is received
+            adapter.submitData(lifecycle, data)
+        }
     }
 
     private fun searchTamu(query: String, adapter: HistoryAdapter) {
-        viewModel.searchTamu(query).observe(this, {
-            adapter.submitData(lifecycle, it)
-        })
+        showLoading(true) // Show loading initially
+        viewModel.searchTamu(query).observe(this) { data ->
+            showLoading(false) // Hide loading when data is received
+            adapter.submitData(lifecycle, data)
+        }
     }
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 }
+

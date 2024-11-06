@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.itsotest.data.UserRepository
 import com.example.itsotest.di.Injection
+import com.example.itsotest.ui.detail.DetailHistoryViewModel
 import com.example.itsotest.ui.history.HistoryViewModel
 import com.example.itsotest.ui.inputktp.InputKtpViewModel
 
@@ -18,6 +19,10 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
 
             modelClass.isAssignableFrom(HistoryViewModel::class.java) -> {
                 HistoryViewModel(repository) as T
+            }
+
+            modelClass.isAssignableFrom(DetailHistoryViewModel::class.java) -> {
+                DetailHistoryViewModel(repository) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)

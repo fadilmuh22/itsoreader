@@ -1,6 +1,8 @@
 package com.example.itsotest.data.api.response
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
 data class HistoryResponse(
 
@@ -41,6 +43,7 @@ data class ItemPaging(
 	val currentPage: Int? = null
 )
 
+@Parcelize
 data class TamuItem(
 
 	@field:SerializedName("penerima_tamu_nip")
@@ -90,4 +93,4 @@ data class TamuItem(
 
 	@field:SerializedName("penerima_tamu_unitKerja")
 	val penerimaUnitKerja : String? = null
-)
+) : Parcelable

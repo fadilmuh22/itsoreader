@@ -10,6 +10,8 @@ import androidx.paging.liveData
 import com.example.itsotest.data.api.config.ApiService
 import com.example.itsotest.data.api.response.ErrorResponse
 import com.example.itsotest.data.api.response.TamuItem
+import com.example.itsotest.data.pref.TamuModel
+import com.example.itsotest.data.pref.TamuPreference
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -17,7 +19,7 @@ import org.json.JSONObject
 import retrofit2.HttpException
 
 class UserRepository private constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService, private val tamuPreference: TamuPreference
 ) {
     fun getPegawai(search : String) = liveData {
         emit(ResultState.Loading)
@@ -112,6 +114,54 @@ class UserRepository private constructor(
         }
     }
 
+    fun uploadTamuDelay(tamu: TamuModel) = liveData {
+        emit(ResultState.Loading)
+
+        try {
+
+            val successResponse = apiService.uploadTamu(
+                type = null,
+                nik = tamu.nik,
+                namaLengkap = tamu.namaLengkap,
+                jenisKelamin = tamu.jenisKelamin,
+                tempatLahir = tamu.tempatLahir,
+                tanggalLahir = tamu.tanggalLahir,
+                agama = tamu.agama,
+                statusKawin = tamu.statusKawin,
+                jenisPekerjaan = tamu.jenisPekerjaan,
+                namaProvinsi = tamu.namaProvinsi,
+                namaKabupaten = tamu.namaKabupaten,
+                namaKecamatan = tamu.namaKecamatan,
+                namaKelurahan = tamu.namaKelurahan,
+                alamat = tamu.alamat,
+                nomorRt = tamu.nomorRt,
+                nomorRw = tamu.nomorRw,
+                berlakuHingga = tamu.berlakuHingga,
+                golonganDarah = tamu.golonganDarah,
+                kewarganegaraan = tamu.kewarganegaraan,
+                foto = tamu.foto,
+                ttd = null,
+                fingerAuth = null,
+                index1 = null,
+                index2 = null,
+                tid = null,
+                nomorHp = tamu.nomorHp,
+                asalInstansi = tamu.asalInstansi,
+                tujuanKunjungan = tamu.tujuanKunjungan,
+                penerimaTamuNip = tamu.penerimaTamuNip
+            )
+            emit(ResultState.Success(successResponse))
+        }catch (e : HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+            Log.d("Repository", "Isi dari error ${errorResponse.message}")
+            emit(ResultState.Error(errorResponse.message?: "Unknown error"))
+        } catch (e : Exception) {
+            Log.d("Repository", "Isi dari error ${e.message}")
+            emit(ResultState.Error(e.message ?: "Unknown error"))
+        }
+    }
+
     fun getTamu(): LiveData<PagingData<TamuItem>> {
         return Pager(
             config = PagingConfig(
@@ -138,13 +188,21 @@ class UserRepository private constructor(
         ).liveData
     }
 
+    suspend fun saveSession(tamu: TamuModel) {
+        tamuPreference.saveTamuData(tamu)
+    }
+
+    suspend fun getSession() : TamuModel {
+        return tamuPreference.getTamuData()
+    }
+
 
     companion object {
         @Volatile
         private var instance: UserRepository? = null
-        fun getInstance(apiService: ApiService) =
+        fun getInstance(apiService: ApiService, tamuPreference: TamuPreference) =
             instance ?: synchronized(this) {
-                instance ?: UserRepository(apiService)
+                instance ?: UserRepository(apiService, tamuPreference)
             }.also { instance = it }
     }
 }

@@ -21,7 +21,7 @@ interface ApiService {
     @FormUrlEncoded
     @POST("ektp/store")
     suspend fun uploadTamu(
-        @Field("type") type: String,
+        @Field("type") type: String?,
         @Field("nik") nik: String,
         @Field("namaLengkap") namaLengkap: String,
         @Field("jenisKelamin") jenisKelamin: String,
@@ -41,12 +41,12 @@ interface ApiService {
         @Field("golonganDarah") golonganDarah: String,
         @Field("kewarganegaraan") kewarganegaraan: String,
         @Field("foto") foto: String,
-        @Field("ttd") ttd: String,
-        @Field("fingerAuth") fingerAuth: String,
-        @Field("index1") index1: String,
-        @Field("index2") index2: String,
+        @Field("ttd") ttd: String?,
+        @Field("fingerAuth") fingerAuth: String?,
+        @Field("index1") index1: String?,
+        @Field("index2") index2: String?,
         @Field("tid") tid: String?,
-        @Field("nomor_hp") nomorHp: String,
+        @Field("nomor_hp") nomorHp : String?,
         @Field("asal_instansi") asalInstansi: String,
         @Field("tujuan_kunjungan") tujuanKunjungan: String,
         @Field("penerima_tamu_nip") penerimaTamuNip: String
