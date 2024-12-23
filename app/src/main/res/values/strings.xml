@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Itso Test</string>
+    <string name="app_name">Buku Tamu Itso</string>
     <string name="btn_admin_auth_test">LOGIN ADMIN</string>
     <string name="btn_read_ektp_test">READ EKTP</string>
     <string name="btn_admin_management">ADMIN MANAGEMENT</string>
@@ -13,8 +13,9 @@
     <string name="alamat">Alamat</string>
     <string name="nomor">Nomor HP</string>
     <string name="instansi">Asal Instansi</string>
-    <string name="tujuan">Tujuan</string>
+    <string name="tujuan">Tujuan Kunjungan</string>
     <string name="save">Simpan</string>
+    <string name="placeholder_tujuan">Ketikan tujuan kunjungan</string>
     <string name="penerima">Pegawai Penerima Tamu</string>
     <string name="judul_dialog">Terdapat Field yang Kosong</string>
     <string name="pesan_dialog">Semua Field Tidak Boleh Kosong</string>

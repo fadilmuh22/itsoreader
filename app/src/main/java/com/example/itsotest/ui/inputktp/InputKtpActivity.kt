@@ -13,6 +13,7 @@ import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -34,6 +35,7 @@ class InputKtpActivity : AppCompatActivity() {
     private var lastQuery: String? = null
     private var nip : String? = null
     private var pegawaiDataList: List<DataItem> = listOf()
+    private var listKunjungan : String? =   null
 
     private val viewModel by viewModels<InputKtpViewModel> {
         ViewModelFactory.getInstance(this)
@@ -45,6 +47,20 @@ class InputKtpActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupAutoCompleteListener()
+
+        val items = listOf("Meeting", "Konsultasi", "Kunjungan Bisnis", "Diskusi Proyek")
+
+        val adapter = ArrayAdapter(this, R.layout.list_item, items)
+
+        // Attach the adapter to the AutoCompleteTextView
+        binding.tujuanEditText.setAdapter(adapter)
+
+        // Listen for item selection from dropdown
+        binding.tujuanEditText.onItemClickListener = AdapterView.OnItemClickListener { adapterView, _, position, _ ->
+            listKunjungan = adapterView.getItemAtPosition(position).toString()
+        }
+
+
 
         val result = intent.getStringExtra(RESULT)
         binding.penerimaAutoComplete.threshold = 1  // Set 1 agar pencarian mulai setelah satu karakter
@@ -95,19 +111,20 @@ class InputKtpActivity : AppCompatActivity() {
         binding.imageSearch.setOnClickListener {
             search()
         }
-
-
     }
 
     private fun setupAction(dataKtp: String) {
         val nomorHp = binding.nomorEditText.text.toString()
         val instansi = binding.instansiEditText.text.toString()
-        val tujuan = binding.tujuanEditText.text.toString()
+        val tujuan = binding.tujuanEditText.text.toString().trim()
         val pegawai = binding.penerimaAutoComplete.text.toString()
 
+
+        listKunjungan = tujuan
+        Log.d(TAG, "Check tujuan $tujuan")
         if (TextUtils.isEmpty(nip)) {
             Log.d(TAG, "Ini masuk NIP kosong")
-            if (!TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(tujuan) && !TextUtils.isEmpty(nomorHp)) {
+            if (!TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(listKunjungan) && !TextUtils.isEmpty(nomorHp)) {
                 sendTamu(pegawai = pegawai, tujuan = tujuan, dataKtp = dataKtp, instansi = instansi, nomorHp = nomorHp)
             } else {
                 showAlert(
@@ -117,7 +134,7 @@ class InputKtpActivity : AppCompatActivity() {
             }
         } else {
             Log.d(TAG, "Ini NIP ada isinya")
-            if (!TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(tujuan) && !TextUtils.isEmpty(nomorHp)) {
+            if (!TextUtils.isEmpty(instansi) && !TextUtils.isEmpty(listKunjungan) && !TextUtils.isEmpty(nomorHp)) {
                 nip?.let { sendTamu(pegawai = it, tujuan = tujuan, dataKtp = dataKtp, instansi = instansi, nomorHp = nomorHp) }
             } else {
                 showAlert(
@@ -214,8 +231,9 @@ class InputKtpActivity : AppCompatActivity() {
 
                         is ResultState.Success -> {
                             // Simpan data asli dari API
-                            pegawaiDataList = result.data.data ?: listOf()
-
+                            if (result.data.status == "success") {
+                                pegawaiDataList = result.data.data ?: listOf()
+                            }
                             // Konversi ke list string dengan format "$nama - $unitKerja"
                             val pegawaiList = pegawaiDataList.map { "${it.nama} - ${it.unitKerja}" }
 

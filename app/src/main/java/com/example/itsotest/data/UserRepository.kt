@@ -36,6 +36,21 @@ class UserRepository private constructor(
         }
     }
 
+    fun updatePenerima(tamu : Int, penerima : String) = liveData {
+        emit(ResultState.Loading)
+
+        try{
+            val successResponse = apiService.updatePenerima(id = tamu, penerima = penerima)
+            emit(ResultState.Success(successResponse))
+        } catch (e : HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+            emit(ResultState.Error(errorResponse.message?: "Unknown error"))
+        } catch (e: Exception) {
+            emit(ResultState.Error(e.message ?: "Unknown error"))
+        }
+    }
+
     fun uploadTamu(tamu : String) = liveData {
         emit(ResultState.Loading)
 

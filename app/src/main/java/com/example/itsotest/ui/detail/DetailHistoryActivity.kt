@@ -1,12 +1,14 @@
 package com.example.itsotest.ui.detail
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -22,7 +24,10 @@ import com.example.itsotest.data.api.response.DataItem
 import com.example.itsotest.data.api.response.TamuItem
 import com.example.itsotest.databinding.ActivityDetailHistoryBinding
 import com.example.itsotest.ui.ViewModelFactory
+import com.example.itsotest.ui.home.HomeActivity
+import com.example.itsotest.ui.inputktp.InputKtpActivity.Companion.TAG
 import com.example.itsotest.ui.inputktp.InputKtpViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class DetailHistoryActivity : AppCompatActivity() {
     private lateinit var binding : ActivityDetailHistoryBinding
@@ -58,17 +63,27 @@ class DetailHistoryActivity : AppCompatActivity() {
                 nomorEditText.isEnabled = false
 
                 val fotoBase64 = it.foto
-                if (fotoBase64!!.isNotEmpty()) {
+                if (fotoBase64!!.isNotEmpty() && it.foto != "-") {
                     val fotoBitmap = decodeBase64ToBitmap(fotoBase64)
                     fotoKtp.setImageBitmap(fotoBitmap)
                 }
 
             }
+
+
         }
 
         binding.imageSearch.setOnClickListener {
             search()
         }
+
+        binding.btnSave.setOnClickListener {
+            if (tamuItem != null) {
+                tamuItem.id?.let { id -> setupSend(id) }
+            }
+        }
+
+
     }
 
     private fun search() {
@@ -120,6 +135,70 @@ class DetailHistoryActivity : AppCompatActivity() {
                 getString(R.string.judul_search),
                 getString(R.string.pesan_search)
             ) { }
+        }
+    }
+
+    private fun setupSend(dataId : Int) {
+        val pegawai = binding.penerimaAutoComplete.text.toString()
+
+        if (TextUtils.isEmpty(nip)) {
+            Log.d(TAG, "Ini masuk NIP kosong")
+            if (!TextUtils.isEmpty(pegawai)) {
+                sendPenerima(pegawai = pegawai, id = dataId)
+            } else {
+                showAlert(
+                    getString(R.string.judul_dialog),
+                    getString(R.string.pesan_dialog)
+                ) { }
+            }
+        } else {
+            Log.d(TAG, "Ini NIP ada isinya")
+            nip?.let { sendPenerima(pegawai = it, id = dataId) }
+        }
+    }
+
+    private fun sendPenerima(pegawai : String, id : Int) {
+        try {
+            viewModel.updatePenerima(id = id, penerima = pegawai).observe(this@DetailHistoryActivity) { result ->
+                when (result) {
+                    is ResultState.Loading -> showLoading(true)
+
+                    is ResultState.Success -> {
+                        MaterialAlertDialogBuilder(this).apply {
+                            setTitle("Data Berhasil dikirim")
+                            setMessage("Data Tamu Sudah Terkirim")
+                            setPositiveButton("Lanjut") { _, _ ->
+                                val intent = Intent(context, HomeActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                        showLoading(false)
+                    }
+
+                    is ResultState.Error -> {
+                        showToast(result.error)
+                        MaterialAlertDialogBuilder(this).apply {
+                            setTitle("Data Tidak Berhasil Dikirim")
+                            setMessage("Pastikan anda terkoneksi internet")
+                            setPositiveButton("Lanjut") { _, _ ->
+                                val intent = Intent(context, HomeActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                        showLoading(false)
+                    }
+                }
+            }
+        }  catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

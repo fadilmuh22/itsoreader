@@ -2,6 +2,7 @@ package com.example.itsotest.data.api.config
 
 import com.example.itsotest.data.api.response.HistoryResponse
 import com.example.itsotest.data.api.response.PegawaiResponse
+import com.example.itsotest.data.api.response.UpdateResponse
 import com.example.itsotest.data.api.response.UploadResponse
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -10,6 +11,7 @@ import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -64,5 +66,13 @@ interface ApiService {
         @Query("per_page") size : Int,
         @Query("search") search : String
     ) : HistoryResponse
+
+    @FormUrlEncoded
+    @POST("tamu/penerima/{id}")
+    suspend fun updatePenerima(
+        @Path("id") id: Int,
+        @Field("penerima_tamu_nip") penerima : String
+    ) : UpdateResponse
+
 
 }

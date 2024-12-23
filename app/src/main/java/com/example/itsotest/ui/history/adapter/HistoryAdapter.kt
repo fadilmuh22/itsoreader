@@ -58,7 +58,7 @@ class HistoryAdapter(private val onItemClicked: (String) -> Unit) :
 
 
             // Set gambar jika ada
-            if (!data.foto.isNullOrEmpty() && isBase64(data.foto)) {
+            if (!data.foto.isNullOrEmpty() && isBase64(data.foto) && (data.foto != "-") ) {
                 val fotoBitmap = decodeBase64ToBitmap(data.foto)
                 binding.ivTips.setImageBitmap(fotoBitmap)
             } else {
@@ -67,10 +67,20 @@ class HistoryAdapter(private val onItemClicked: (String) -> Unit) :
 
         }
 
-        private fun decodeBase64ToBitmap(base64Str: String): Bitmap {
-            val decodedBytes = Base64.decode(base64Str, Base64.DEFAULT)
-            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        private fun decodeBase64ToBitmap(base64Str: String): Bitmap? {
+            return try {
+                val decodedBytes = Base64.decode(base64Str, Base64.DEFAULT)
+                val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                if (bitmap == null) {
+                    Log.e("decodeBase64ToBitmap", "Bitmap decoding failed. Byte array is not a valid image.")
+                }
+                bitmap
+            } catch (e: Exception) {
+                Log.e("decodeBase64ToBitmap", "Error decoding Base64 string: ${e.message}")
+                null
+            }
         }
+
 
         private fun isBase64(str: String): Boolean {
             return try {

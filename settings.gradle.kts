@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Itso Test"
+rootProject.name = "Bukut Tamu Itso"
 include(":app")
  
